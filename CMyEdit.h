@@ -5,6 +5,7 @@
 
 #define WM_EDIT_RBUTTONDOWN (WM_USER+1)
 #define WM_EDIT_LBUTTONDOWN (WM_USER+2)
+#define WM_EDIT_NCHITTEST   (WM_USER+3)
 
 class CMyEdit : public CWnd
 {
@@ -25,5 +26,7 @@ public:
     afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
     afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+    afx_msg LRESULT OnNcHitTest(CPoint point);
+    afx_msg void OnNcLButtonDown(UINT nHitTest, CPoint point);
 };
 

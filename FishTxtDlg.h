@@ -76,4 +76,5 @@ public:
 	afx_msg void OnBnClickedBtnFishing();
 	afx_msg LRESULT OnEditRButtonDown(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnEditLButtonDown(WPARAM wParam, LPARAM lParam);
+	afx_msg void OnNcLButtonDown(UINT nHitTest, CPoint point);
 };

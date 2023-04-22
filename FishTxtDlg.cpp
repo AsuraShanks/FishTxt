@@ -113,6 +113,7 @@ BEGIN_MESSAGE_MAP(CFishTxtDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_FISHING, &CFishTxtDlg::OnBnClickedBtnFishing)
 	ON_MESSAGE(WM_EDIT_RBUTTONDOWN, &CFishTxtDlg::OnEditRButtonDown)
 	ON_MESSAGE(WM_EDIT_LBUTTONDOWN, &CFishTxtDlg::OnEditLButtonDown)
+	ON_WM_NCLBUTTONDOWN()
 END_MESSAGE_MAP()
 
 
@@ -275,6 +276,13 @@ void CFishTxtDlg::OnClose()
 HCURSOR CFishTxtDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
+}
+
+void CFishTxtDlg::OnNcLButtonDown(UINT nHitTest, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+
+	CDialogEx::OnNcLButtonDown(nHitTest, point);
 }
 
 void CFishTxtDlg::OnBnClickedBtnOpenFile()
@@ -441,157 +449,10 @@ void CFishTxtDlg::SetButtonVisble(bool bVisble)
 
 void CFishTxtDlg::SetFishWindowStyle()
 {
-	/*DWORD dwStyle = GetStyle();
-	DWORD dwNewStyle = WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-	dwNewStyle &= dwStyle;
-	SetWindowLong(m_hWnd, GWL_STYLE, dwNewStyle);
-
-	DWORD dwExStyle = GetExStyle();
-	DWORD dwNewExStyle = WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR;
-	dwNewExStyle &= dwExStyle;
-	SetWindowLong(m_hWnd, GWL_EXSTYLE, dwNewExStyle);*/
-
-	::SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME & ~WS_BORDER);
+	::SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME & ~WS_BORDER & WS_EX_TOOLWINDOW);
 }
 
 void CFishTxtDlg::SetNormalWindowStyle()
 {
 	::SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_BORDER);
-}
-
-ENUM_CODING_FORM CFishTxtDlg::GetTxtCodingForm(std::string filePath)
-{
-	ENUM_CODING_FORM ret = ECF_OPEN_FAIL;
-
-	std::ifstream file;
-	file.open(filePath, std::ios::in | std::ios::binary);
-	if (!file.is_open())
-	{
-		CString msg;
-		msg.Format("%s打开失败！", filePath);
-		MessageBox(msg);
-		return ret;
-	}
-
-	unsigned char str[1024];
-	unsigned short head;
-	file.read((char*)(&head), 2);
-
-	switch (head)
-	{
-	case 0xbbef:
-		OutputDebugString("UTF-8 BOM格式");
-		ret = ECF_UTF8_BOM;
-		break;
-	case 0xfffe:
-		OutputDebugString("unicode Big Endian格式");
-		ret = ECF_UNICODE_BIG;
-		break;
-	case 0xfeff:
-		OutputDebugString("unicode Little Endian格式");
-		ret = ECF_UNICODE_LITTLE;
-		break;
-	default:
-		if (0)
-		{
-
-		}
-		else
-		{
-			OutputDebugString("ANSI 格式");
-			ret = ECF_ANSI;
-		}
-		break;
-	}
-	return ret;
-}
-
-int CFishTxtDlg::utf8_without_bom_or_ansi(std::string filePath)
-{
-	int iRet = -1;
-
-	std::ifstream file;
-	file.open(filePath, std::ios::in);
-
-	if (!file.is_open())
-	{
-		CString msg;
-		msg.Format("%s打开失败！", filePath);
-		MessageBox(msg);
-		return iRet;
-	}
-
-	std::stringstream buffer;
-	buffer << file.rdbuf();
-	file.close();
-	std::string text = buffer.str();
-
-	size_t len = text.size();
-	int n = 0;
-	unsigned char ch;
-	bool b_all_ascii = true;
-
-	//0x00-0x7F为ASCII码范围
-
-	for (size_t i = 0; i < len; ++i)
-	{
-		ch = text[i];
-
-		if ((ch & 0x80) != 0)
-		{
-			b_all_ascii = false;
-		}
-
-		if (n == 0)
-		{
-			if (ch >= 0x80)
-			{
-				if (ch >= 0xFC && ch <= 0xFD)
-				{
-					n = 6;
-				}
-				else if (ch >= 0xF8)
-				{
-					n = 5;
-				}
-				else if (ch >= 0xF0)
-				{
-					n = 4;
-				}
-				else if (ch >= 0xE0)
-				{
-					n = 3;
-				}
-				else if (ch >= 0xC0)
-				{
-					n = 2;
-				}
-				else
-				{
-					return 0;
-				}
-				n--;
-			}
-		}
-		else
-		{
-			if ((ch & 0xC0) != 0x80)//在UTF-8中，以位模式10开始的所有字节是多字节序列的后续字节
-			{
-				return false;
-			}
-			n--;
-		}
-	}
-
-	if (n > 0)
-	{
-		return false;
-	}
-
-	if (b_all_ascii)
-	{
-		return false;
-	}
-
-	return TRUE;
 }
