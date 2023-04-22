@@ -8,7 +8,6 @@
 #define IDC_BTN_OPEN_FILE               1001
 #define IDC_BTN_FULL_SCREEN             1003
 #define IDC_BTN_FISHING                 1004
-#define IDC_RICHEDIT21                  1008
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_CLOSE                        32773
@@ -18,7 +17,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        133
+#define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32775
 #define _APS_NEXT_CONTROL_VALUE         1009
 #define _APS_NEXT_SYMED_VALUE           101

@@ -82,6 +82,33 @@ static DWORD CALLBACK MyStreamInCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG
 	return 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////全局函数///////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+BOOL ShowInTaskbar(HWND hWnd, BOOL bShow)
+{
+
+	HRESULT hr;
+	ITaskbarList* pTaskbarList;
+	hr = CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER,
+		IID_ITaskbarList, (void**)&pTaskbarList);
+
+	if (SUCCEEDED(hr))
+	{
+
+		pTaskbarList->HrInit();
+		if (bShow)
+			pTaskbarList->AddTab(hWnd);
+		else
+			pTaskbarList->DeleteTab(hWnd);
+
+		pTaskbarList->Release();
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 // CFishTxtDlg 对话框
 
 CFishTxtDlg::CFishTxtDlg(CWnd* pParent /*=nullptr*/)
@@ -113,7 +140,6 @@ BEGIN_MESSAGE_MAP(CFishTxtDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_FISHING, &CFishTxtDlg::OnBnClickedBtnFishing)
 	ON_MESSAGE(WM_EDIT_RBUTTONDOWN, &CFishTxtDlg::OnEditRButtonDown)
 	ON_MESSAGE(WM_EDIT_LBUTTONDOWN, &CFishTxtDlg::OnEditLButtonDown)
-	ON_WM_NCLBUTTONDOWN()
 END_MESSAGE_MAP()
 
 
@@ -278,13 +304,6 @@ HCURSOR CFishTxtDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-void CFishTxtDlg::OnNcLButtonDown(UINT nHitTest, CPoint point)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-
-	CDialogEx::OnNcLButtonDown(nHitTest, point);
-}
-
 void CFishTxtDlg::OnBnClickedBtnOpenFile()
 {
 	m_ScintillaEdit.SendMessage(SCI_SETREADONLY, FALSE);
@@ -293,9 +312,6 @@ void CFishTxtDlg::OnBnClickedBtnOpenFile()
 	if (fileDlg.DoModal() == IDOK)
 	{
 		CString strPath = fileDlg.GetPathName();
-
-		//ENUM_CODING_FORM codingForm = GetTxtCodingForm(strPath.GetBuffer());
-		//strPath.ReleaseBuffer();
 
 		std::ifstream file;
 		file.open(strPath.GetBuffer(), std::ios::in | std::ios::binary);
@@ -449,10 +465,12 @@ void CFishTxtDlg::SetButtonVisble(bool bVisble)
 
 void CFishTxtDlg::SetFishWindowStyle()
 {
-	::SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME & ~WS_BORDER & WS_EX_TOOLWINDOW);
+	::SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME & ~WS_BORDER);
+	ShowInTaskbar(this->GetSafeHwnd(), FALSE);
 }
 
 void CFishTxtDlg::SetNormalWindowStyle()
 {
 	::SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_BORDER);
+	ShowInTaskbar(this->GetSafeHwnd(), TRUE);
 }
