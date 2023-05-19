@@ -1,5 +1,4 @@
-﻿
-// FishTxtDlg.cpp: 实现文件
+﻿// FishTxtDlg.cpp: 实现文件
 //
 
 #include "pch.h"
@@ -9,6 +8,8 @@
 #include "afxdialogex.h"
 #include <fstream>
 #include <sstream>
+#include <thread>
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -19,6 +20,8 @@
 #define WM_CLOSE_ALL			(WM_USER+2)
 #define WM_QUIT_FULL_SCREEN		(WM_USER+3)
 #define WM_INTO_FISH			(WM_USER+4)
+
+#define TIMER_MOUSE_MOVE		(WM_USER+50)
 
 static const int iButtonBarWidth = 180;
 static const int iDlgWidth = 650;
@@ -69,19 +72,6 @@ LRESULT CALLBACK CBTProc(_In_ int    nCode, _In_ WPARAM wParam, _In_ LPARAM lPar
 	return CallNextHookEx((HHOOK)hCBTHook, nCode, wParam, lParam);
 }
 
-
-////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////富文本相关///////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////
-static DWORD CALLBACK MyStreamInCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG* pcb)
-{
-	CFile* pFile = (CFile*)dwCookie;
-
-	*pcb = pFile->Read(pbBuff, cb);
-
-	return 0;
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////全局函数///////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -109,16 +99,19 @@ BOOL ShowInTaskbar(HWND hWnd, BOOL bShow)
 	return FALSE;
 }
 
+
 // CFishTxtDlg 对话框
 
 CFishTxtDlg::CFishTxtDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(CFishTxtDlg::IDD, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_hAccelGoToLine = LoadAccelerators(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_ACCELERATOR_GO_TO_LINE));
 	m_bMiniMode = false;
 	m_bFullScreen = false;
 	m_miniWidth = 650;
 	m_miniHeight = 40;
+	pGotoDlg = nullptr;
 }
 
 void CFishTxtDlg::DoDataExchange(CDataExchange* pDX)
@@ -134,12 +127,11 @@ BEGIN_MESSAGE_MAP(CFishTxtDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_SIZE()
 	ON_WM_CLOSE()
-	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BTN_OPEN_FILE, &CFishTxtDlg::OnBnClickedBtnOpenFile)
 	ON_BN_CLICKED(IDC_BTN_FULL_SCREEN, &CFishTxtDlg::OnBnClickedBtnFullScreen)
 	ON_BN_CLICKED(IDC_BTN_FISHING, &CFishTxtDlg::OnBnClickedBtnFishing)
 	ON_MESSAGE(WM_EDIT_RBUTTONDOWN, &CFishTxtDlg::OnEditRButtonDown)
-	ON_MESSAGE(WM_EDIT_LBUTTONDOWN, &CFishTxtDlg::OnEditLButtonDown)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -158,10 +150,9 @@ BOOL CFishTxtDlg::OnInitDialog()
 	m_ScintillaEdit.SendMessage(SCI_SETMARGINWIDTHN, 1, 0);			//隐藏左侧margin
 	m_ScintillaEdit.SendMessage(SCI_SETHSCROLLBAR, 0, 0);			//隐藏水平滚动条
 	m_ScintillaEdit.SendMessage(SCI_SETVSCROLLBAR, 0, 0);			//隐藏垂直滚动条
-	m_ScintillaEdit.SendMessage(SCI_SETWRAPMODE, 2);				//启用换行
-	m_ScintillaEdit.SendMessage(SCI_SETCODEPAGE, SC_CP_UTF8);		//设置编辑框识别编码为utf8
 	m_ScintillaEdit.SendMessage(SCI_USEPOPUP, 0);					//隐藏自带弹出菜单
-	m_ScintillaEdit.SendMessage(SCI_SETREADONLY, TRUE);				//设置只读模式
+	m_ScintillaEdit.SendMessage(SCI_SETCODEPAGE, SC_CP_UTF8);		//设置编辑框识别编码为utf8
+	m_ScintillaEdit.SendMessage(SCI_SETWRAPMODE, 2);				//启用换行
 
 	gDialog = this->GetSafeHwnd();
 	gEdit = m_ScintillaEdit.GetSafeHwnd();
@@ -192,6 +183,8 @@ BOOL CFishTxtDlg::OnInitDialog()
 
 	SetButtonPosition(true);
 
+	SetTimer(TIMER_MOUSE_MOVE, 10, NULL);
+
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -203,6 +196,14 @@ BOOL CFishTxtDlg::PreTranslateMessage(MSG* pMsg)
 		if (pMsg->wParam == VK_ESCAPE || pMsg->wParam == VK_RETURN)
 			return TRUE;
 	}
+	if (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST)
+	{
+		if (m_hAccelGoToLine && ::TranslateAccelerator(m_hWnd, m_hAccelGoToLine, pMsg))
+		{
+			GotoLineDlg();
+			return TRUE;
+		}
+	}
 
 	return CDialogEx::PreTranslateMessage(pMsg);
 }
@@ -212,6 +213,15 @@ LRESULT CFishTxtDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 	// TODO: 在此添加专用代码和/或调用基类
 	switch (message)
 	{
+	case WM_LBUTTONDOWN:
+	{
+		if (m_bMiniMode)
+		{
+			CPoint point = *(CPoint*)lParam;
+			PostMessage(WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(point.x, point.y));
+		}
+	}
+		break;
 	default:
 		break;
 	}
@@ -279,6 +289,8 @@ void CFishTxtDlg::OnSize(UINT nType, int cx, int cy)
 void CFishTxtDlg::OnClose()
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	KillTimer(TIMER_MOUSE_MOVE);
+
 	if (hMouseHook != NULL)  //如果钩子句柄不等于NULL
 	{
 		//卸载钩子
@@ -298,21 +310,14 @@ void CFishTxtDlg::OnClose()
 	CDialogEx::OnClose();
 }
 
-//当用户拖动最小化窗口时系统调用此函数取得光标显示。
-HCURSOR CFishTxtDlg::OnQueryDragIcon()
-{
-	return static_cast<HCURSOR>(m_hIcon);
-}
-
 void CFishTxtDlg::OnBnClickedBtnOpenFile()
 {
-	m_ScintillaEdit.SendMessage(SCI_SETREADONLY, FALSE);
-	CFileDialog fileDlg(TRUE, _T("txt"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("文本文档(*.txt)|*.txt||") , this);
+	CFileDialog fileDlg(TRUE, _T("txt"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("文本文档(*.txt)|*.txt|测试用(*.cpp)|*.cpp||") , this);
 
 	if (fileDlg.DoModal() == IDOK)
 	{
 		CString strPath = fileDlg.GetPathName();
-
+		
 		std::ifstream file;
 		file.open(strPath.GetBuffer(), std::ios::in | std::ios::binary);
 		strPath.ReleaseBuffer();
@@ -329,7 +334,6 @@ void CFishTxtDlg::OnBnClickedBtnOpenFile()
 		file.close();
 		m_ScintillaEdit.SendMessage(SCI_SETTEXT, 1, (LPARAM)strText.c_str());
 	}
-	m_ScintillaEdit.SendMessage(SCI_SETREADONLY, TRUE);
 }
 
 void CFishTxtDlg::OnBnClickedBtnFullScreen()
@@ -352,7 +356,7 @@ void CFishTxtDlg::OnBnClickedBtnFishing()
 
 	::SetWindowPos(this->GetSafeHwnd(), HWND_TOPMOST, 0, 0, m_miniWidth, m_miniHeight, SWP_NOMOVE | SWP_NOREPOSITION);
 
-	m_bMiniMode = true;
+	SetFishMode(true);
 }
 
 LRESULT CFishTxtDlg::OnEditRButtonDown(WPARAM wParam, LPARAM lParam)
@@ -386,7 +390,7 @@ LRESULT CFishTxtDlg::OnEditRButtonDown(WPARAM wParam, LPARAM lParam)
 		::SetWindowPos(this->GetSafeHwnd(), HWND_NOTOPMOST, 0, 0, iDlgWidth, iDlgHeight, SWP_NOMOVE);
 		
 		SetButtonPosition(true);
-		m_bMiniMode = false;
+		SetFishMode(false);
 	}
 	else if (nCmd == WM_CLOSE_ALL)
 	{
@@ -406,14 +410,6 @@ LRESULT CFishTxtDlg::OnEditRButtonDown(WPARAM wParam, LPARAM lParam)
 	{
 		OnBnClickedBtnFishing();
 	}
-
-	return 0;
-}
-
-LRESULT CFishTxtDlg::OnEditLButtonDown(WPARAM wParam, LPARAM lParam)
-{
-	CPoint point = *(CPoint*)lParam;
-	PostMessage(WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(point.x, point.y));
 
 	return 0;
 }
@@ -463,6 +459,12 @@ void CFishTxtDlg::SetButtonVisble(bool bVisble)
 	}
 }
 
+void CFishTxtDlg::SetFishMode(bool bMode)
+{
+	m_bMiniMode = bMode;
+	m_ScintillaEdit.SetFishMode(bMode);
+}
+
 void CFishTxtDlg::SetFishWindowStyle()
 {
 	::SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME & ~WS_BORDER);
@@ -473,4 +475,56 @@ void CFishTxtDlg::SetNormalWindowStyle()
 {
 	::SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_BORDER);
 	ShowInTaskbar(this->GetSafeHwnd(), TRUE);
+}
+
+void CFishTxtDlg::GotoLine(int iTarDocLine, int iCurVisLine)
+{
+	int iTarVisLine = m_ScintillaEdit.SendMessage(SCI_VISIBLEFROMDOCLINE, iTarDocLine);
+	m_ScintillaEdit.SendMessage(SCI_LINESCROLL, 0, iTarVisLine - iCurVisLine);
+}
+
+void CFishTxtDlg::GotoLineDlg()
+{
+	if (pGotoDlg && pGotoDlg->IsWindowVisible())
+		return;
+	int iLineCount = m_ScintillaEdit.SendMessage(SCI_GETLINECOUNT);
+	int iCurVisLine = m_ScintillaEdit.SendMessage(SCI_GETFIRSTVISIBLELINE) + 1;
+	int iCurDocLine = m_ScintillaEdit.SendMessage(SCI_DOCLINEFROMVISIBLE, iCurVisLine);
+	if (pGotoDlg == nullptr)
+	{
+		pGotoDlg = new CGoToLineDlg(this);
+		pGotoDlg->Create(CGoToLineDlg::IDD, this);
+	}
+	pGotoDlg->SetInfo(iCurDocLine, iLineCount, iCurVisLine);
+	pGotoDlg->Show(TRUE);	
+}
+
+void CFishTxtDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	switch (nIDEvent)
+	{
+	case TIMER_MOUSE_MOVE:
+	{
+		if (m_bMiniMode)
+		{
+			CRect rc;
+			CPoint pt;
+			GetWindowRect(&rc);
+			GetCursorPos(&pt);
+			if (!rc.PtInRect(pt))
+			{
+				ShowWindow(SW_HIDE);
+			}
+			else
+			{
+				ShowWindow(SW_SHOW);
+			}
+		}
+	}
+		break;
+	default:
+		break;
+	}
+
+	CDialogEx::OnTimer(nIDEvent);
 }

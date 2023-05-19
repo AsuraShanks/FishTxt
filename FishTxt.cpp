@@ -28,7 +28,6 @@ CFishTxtApp::CFishTxtApp()
 
 	// TODO: 在此处添加构造代码，
 	// 将所有重要的初始化放置在 InitInstance 中
-	m_hSciLexer = NULL;
 }
 
 
@@ -70,12 +69,7 @@ BOOL CFishTxtApp::InitInstance()
 	// 例如修改为公司或组织名
 	SetRegistryKey(_T("应用程序向导生成的本地应用程序"));
 
-	m_hSciLexer = ::LoadLibrary(_T("SciLexer.dll"));
-	if (m_hSciLexer == NULL)
-	{
-		AfxMessageBox("加载SciLexer.dll失败！");
-		return FALSE;
-	}
+	Scintilla_RegisterClasses(theApp.m_hInstance);
 
 	CFishTxtDlg dlg;
 	m_pMainWnd = &dlg;
@@ -114,10 +108,17 @@ BOOL CFishTxtApp::InitInstance()
 int CFishTxtApp::ExitInstance()
 {
 	// TODO: 在此添加专用代码和/或调用基类
-	if (m_hSciLexer != NULL)
-	{
-		::FreeLibrary(m_hSciLexer);
-	}
 
 	return CWinApp::ExitInstance();
+}
+
+std::string CFishTxtApp::_GetCurFilePath()
+{
+	char path[MAX_PATH] = { 0 };
+	GetModuleFileName(NULL, path, MAX_PATH);
+	std::string sPath(path);
+	int pos = sPath.rfind("\\");
+	std::string sRet = sPath.substr(0, pos);
+	sRet += "\\";
+	return sRet;
 }

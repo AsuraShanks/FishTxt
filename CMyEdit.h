@@ -1,11 +1,9 @@
 #pragma once
 #include <afxwin.h>
-#include ".\include\Scintilla\SciLexer.h"
-#include ".\include\Scintilla\Scintilla.h"
+#include ".\SDK\Scintilla\include\Scintilla.h"
 
 #define WM_EDIT_RBUTTONDOWN (WM_USER+1)
-#define WM_EDIT_LBUTTONDOWN (WM_USER+2)
-#define WM_EDIT_NCHITTEST   (WM_USER+3)
+#define WM_EDIT_NCHITTEST   (WM_USER+2)
 
 class CMyEdit : public CWnd
 {

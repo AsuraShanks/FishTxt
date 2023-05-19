@@ -9,6 +9,7 @@
 #endif
 
 #include "resource.h"		// 主符号
+#include <string>
 
 // CFishTxtApp:
 // 有关此类的实现，请参阅 FishTxt.cpp
@@ -29,7 +30,7 @@ public:
 	DECLARE_MESSAGE_MAP()
 
 public:
-	HMODULE m_hSciLexer;
+	std::string _GetCurFilePath();
 };
 
 extern CFishTxtApp theApp;

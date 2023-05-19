@@ -5,7 +5,7 @@
 #pragma once
 #include <string>
 #include "CMyEdit.h"
-
+#include "GoToLineDlg.h"
 
 enum ENUM_CODING_FORM
 {
@@ -36,6 +36,7 @@ public:
 // 实现
 protected:
 	HICON m_hIcon;
+	HACCEL m_hAccelGoToLine;
 
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
@@ -45,7 +46,6 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnClose();
-	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 
 public:
@@ -57,21 +57,27 @@ public:
 
 	bool m_bMiniMode;
 	bool m_bFullScreen;
+	
 
 	//MINI模式宽高
 	int m_miniWidth;
 	int m_miniHeight;
 
+	CGoToLineDlg* pGotoDlg;
+
 public:
 	void SetButtonPosition(bool bVisble);
 	void SetButtonVisble(bool bVisble);
+	void SetFishMode(bool bMode);
 	void SetFishWindowStyle();
 	void SetNormalWindowStyle();
+	void GotoLine(int iTarDocLine, int iCurVisLine);
+	void GotoLineDlg();
 
 public:
 	afx_msg void OnBnClickedBtnOpenFile();
 	afx_msg void OnBnClickedBtnFullScreen();
 	afx_msg void OnBnClickedBtnFishing();
 	afx_msg LRESULT OnEditRButtonDown(WPARAM wParam, LPARAM lParam);
-	afx_msg LRESULT OnEditLButtonDown(WPARAM wParam, LPARAM lParam);
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };

@@ -13,8 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Scintilla">
-      <UniqueIdentifier>{c42c70d4-ef02-40f6-b745-e8df6b2c622c}</UniqueIdentifier>
+    <Filter Include="SDK">
+      <UniqueIdentifier>{14849c68-feee-4de9-9178-0bba86030b99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDK\Scintilla">
+      <UniqueIdentifier>{c18815ec-1cb7-4992-a29b-f2d9217f2d6e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -39,11 +42,35 @@
     <ClInclude Include="CMyEdit.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="include\Scintilla\SciLexer.h">
-      <Filter>Scintilla</Filter>
+    <ClInclude Include="GoToLineDlg.h">
+      <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="include\Scintilla\Scintilla.h">
-      <Filter>Scintilla</Filter>
+    <ClInclude Include="SDK\Scintilla\include\ILexer.h">
+      <Filter>SDK\Scintilla</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Scintilla\include\ILoader.h">
+      <Filter>SDK\Scintilla</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Scintilla\include\Sci_Position.h">
+      <Filter>SDK\Scintilla</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Scintilla\include\Scintilla.h">
+      <Filter>SDK\Scintilla</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Scintilla\include\ScintillaCall.h">
+      <Filter>SDK\Scintilla</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Scintilla\include\ScintillaMessages.h">
+      <Filter>SDK\Scintilla</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Scintilla\include\ScintillaStructures.h">
+      <Filter>SDK\Scintilla</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Scintilla\include\ScintillaTypes.h">
+      <Filter>SDK\Scintilla</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\Scintilla\include\ScintillaWidget.h">
+      <Filter>SDK\Scintilla</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -57,6 +84,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CMyEdit.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GoToLineDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

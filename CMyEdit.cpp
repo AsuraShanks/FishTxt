@@ -25,7 +25,7 @@ BOOL CMyEdit::Create(DWORD dwExStyle, DWORD dwStyle, const RECT& rect, CWnd* pPa
 
 	return CWnd::CreateEx(dwExStyle, "Scintilla", "", dwStyle, rect, pParentWnd, nID);
 }
-
+//实现拖拽
 void CMyEdit::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
@@ -35,9 +35,9 @@ void CMyEdit::OnLButtonDown(UINT nFlags, CPoint point)
 
 	ClientToScreen(&point);
 
-	pParent->SendMessage(WM_EDIT_LBUTTONDOWN, nFlags, (LPARAM)&point);
+	pParent->SendMessage(WM_LBUTTONDOWN, nFlags, (LPARAM)&point);
 }
-
+//实现右键菜单
 void CMyEdit::OnRButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
@@ -48,10 +48,8 @@ void CMyEdit::OnRButtonDown(UINT nFlags, CPoint point)
 	ClientToScreen(&point);
 
 	pParent->SendMessage(WM_EDIT_RBUTTONDOWN, nFlags, (LPARAM)&point);
-
-	//CWnd::OnRButtonDown(nFlags, point);
 }
-
+//放大缩小及换行
 BOOL CMyEdit::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
@@ -75,6 +73,10 @@ BOOL CMyEdit::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 
 LRESULT CMyEdit::OnNcHitTest(CPoint point)
 {
+	if (!m_bFishMode)
+	{
+		return CWnd::OnNcHitTest(point);
+	}
 	CRect rect;
 	GetClientRect(&rect);
 	ScreenToClient(&point);
