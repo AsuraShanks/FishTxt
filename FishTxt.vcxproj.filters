@@ -19,12 +19,15 @@
     <Filter Include="SDK\Scintilla">
       <UniqueIdentifier>{c18815ec-1cb7-4992-a29b-f2d9217f2d6e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{7711d9ba-0e22-4325-b70f-faaaf462b43d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MyEdit">
+      <UniqueIdentifier>{1896ab6f-77cd-4046-a57b-e81a4e8003c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FishTxt.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="FishTxtDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="framework.h">
@@ -37,12 +40,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="CMyEdit.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="GoToLineDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SDK\Scintilla\include\ILexer.h">
@@ -72,22 +69,37 @@
     <ClInclude Include="SDK\Scintilla\include\ScintillaWidget.h">
       <Filter>SDK\Scintilla</Filter>
     </ClInclude>
+    <ClInclude Include="UI\FishTxtDlg.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\CDlgGoto.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CMyEdit.h">
+      <Filter>MyEdit</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\CDlgCatalog.h">
+      <Filter>UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FishTxt.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="FishTxtDlg.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CMyEdit.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="UI\FishTxtDlg.cpp">
+      <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="GoToLineDlg.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="UI\CDlgGoto.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CMyEdit.cpp">
+      <Filter>MyEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\CDlgCatalog.cpp">
+      <Filter>UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -5,7 +5,7 @@
 #include "FishTxt.h"
 #include "afxdialogex.h"
 #include "FishTxtDlg.h"
-#include "GoToLineDlg.h"
+#include "CDlgGoto.h"
 
 
 // CGoToLineDlg 对话框

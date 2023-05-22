@@ -4,8 +4,19 @@
 
 #pragma once
 #include <string>
-#include "CMyEdit.h"
-#include "GoToLineDlg.h"
+#include "..\src\CMyEdit.h"
+#include "CDlgGoto.h"
+#include "CDlgCatalog.h"
+
+#define WM_QUIT_FISH			(WM_USER+1)
+#define WM_CLOSE_ALL			(WM_USER+2)
+#define WM_QUIT_FULL_SCREEN		(WM_USER+3)
+#define WM_INTO_FISH			(WM_USER+4)
+#define WM_CATALOG				(WM_USER+5)
+
+#define WM_GOTO_CATALOG			(WM_USER+50)
+#define TIMER_MOUSE_MOVE		(WM_USER+100)
+
 
 enum ENUM_CODING_FORM
 {
@@ -46,6 +57,7 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnClose();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	DECLARE_MESSAGE_MAP()
 
 public:
@@ -63,7 +75,8 @@ public:
 	int m_miniWidth;
 	int m_miniHeight;
 
-	CGoToLineDlg* pGotoDlg;
+	CGoToLineDlg* m_pDlgGoto;
+	CDlgCatalog* m_pDlgCatalog;
 
 public:
 	void SetButtonPosition(bool bVisble);
@@ -73,11 +86,12 @@ public:
 	void SetNormalWindowStyle();
 	void GotoLine(int iTarDocLine, int iCurVisLine);
 	void GotoLineDlg();
+	void getCatalog(std::string strText);
 
 public:
 	afx_msg void OnBnClickedBtnOpenFile();
 	afx_msg void OnBnClickedBtnFullScreen();
 	afx_msg void OnBnClickedBtnFishing();
 	afx_msg LRESULT OnEditRButtonDown(WPARAM wParam, LPARAM lParam);
-	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg LRESULT OnGotoCatalog(WPARAM wParam, LPARAM lParam);
 };

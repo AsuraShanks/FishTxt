@@ -2,26 +2,20 @@
 //
 
 #include "pch.h"
-#include "framework.h"
-#include "FishTxt.h"
+#include "..\framework.h"
+#include "..\FishTxt.h"
 #include "FishTxtDlg.h"
 #include "afxdialogex.h"
 #include <fstream>
 #include <sstream>
 #include <thread>
+#include <regex>
+#include <list>
 
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-
-#define WM_QUIT_FISH			(WM_USER+1)
-#define WM_CLOSE_ALL			(WM_USER+2)
-#define WM_QUIT_FULL_SCREEN		(WM_USER+3)
-#define WM_INTO_FISH			(WM_USER+4)
-
-#define TIMER_MOUSE_MOVE		(WM_USER+50)
 
 static const int iButtonBarWidth = 180;
 static const int iDlgWidth = 650;
@@ -99,6 +93,15 @@ BOOL ShowInTaskbar(HWND hWnd, BOOL bShow)
 	return FALSE;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////线程函数///////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+void thread_get_catalog(WPARAM wParam, LPARAM lParam)
+{
+	CFishTxtDlg* pDlg = (CFishTxtDlg*)wParam;
+	std::string* pText = reinterpret_cast<std::string*>(lParam);
+	pDlg->getCatalog(*pText);
+}
 
 // CFishTxtDlg 对话框
 
@@ -111,7 +114,8 @@ CFishTxtDlg::CFishTxtDlg(CWnd* pParent /*=nullptr*/)
 	m_bFullScreen = false;
 	m_miniWidth = 650;
 	m_miniHeight = 40;
-	pGotoDlg = nullptr;
+	m_pDlgGoto = nullptr;
+	m_pDlgCatalog = nullptr;
 }
 
 void CFishTxtDlg::DoDataExchange(CDataExchange* pDX)
@@ -127,11 +131,12 @@ BEGIN_MESSAGE_MAP(CFishTxtDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_SIZE()
 	ON_WM_CLOSE()
+	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_BTN_OPEN_FILE, &CFishTxtDlg::OnBnClickedBtnOpenFile)
 	ON_BN_CLICKED(IDC_BTN_FULL_SCREEN, &CFishTxtDlg::OnBnClickedBtnFullScreen)
 	ON_BN_CLICKED(IDC_BTN_FISHING, &CFishTxtDlg::OnBnClickedBtnFishing)
 	ON_MESSAGE(WM_EDIT_RBUTTONDOWN, &CFishTxtDlg::OnEditRButtonDown)
-	ON_WM_TIMER()
+	ON_MESSAGE(WM_GOTO_CATALOG, &CFishTxtDlg::OnGotoCatalog)
 END_MESSAGE_MAP()
 
 
@@ -151,7 +156,8 @@ BOOL CFishTxtDlg::OnInitDialog()
 	m_ScintillaEdit.SendMessage(SCI_SETHSCROLLBAR, 0, 0);			//隐藏水平滚动条
 	m_ScintillaEdit.SendMessage(SCI_SETVSCROLLBAR, 0, 0);			//隐藏垂直滚动条
 	m_ScintillaEdit.SendMessage(SCI_USEPOPUP, 0);					//隐藏自带弹出菜单
-	m_ScintillaEdit.SendMessage(SCI_SETCODEPAGE, SC_CP_UTF8);		//设置编辑框识别编码为utf8
+	//m_ScintillaEdit.SendMessage(SCI_SETCODEPAGE, SC_CP_UTF8);		//设置编辑框识别编码为utf8
+	m_ScintillaEdit.SendMessage(SCI_SETCODEPAGE, 936);				//设置编辑框识别编码为GBK简体中文
 	m_ScintillaEdit.SendMessage(SCI_SETWRAPMODE, 2);				//启用换行
 
 	gDialog = this->GetSafeHwnd();
@@ -184,6 +190,10 @@ BOOL CFishTxtDlg::OnInitDialog()
 	SetButtonPosition(true);
 
 	SetTimer(TIMER_MOUSE_MOVE, 10, NULL);
+
+	m_pDlgCatalog = new CDlgCatalog(this);
+	m_pDlgCatalog->Create(CDlgCatalog::IDD, this);
+	m_pDlgCatalog->ShowWindow(SW_HIDE);
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -310,6 +320,36 @@ void CFishTxtDlg::OnClose()
 	CDialogEx::OnClose();
 }
 
+void CFishTxtDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	switch (nIDEvent)
+	{
+	case TIMER_MOUSE_MOVE:
+	{
+		if (m_bMiniMode)
+		{
+			CRect rc;
+			CPoint pt;
+			GetWindowRect(&rc);
+			GetCursorPos(&pt);
+			if (!rc.PtInRect(pt))
+			{
+				ShowWindow(SW_HIDE);
+			}
+			else
+			{
+				ShowWindow(SW_SHOW);
+			}
+		}
+	}
+	break;
+	default:
+		break;
+	}
+
+	CDialogEx::OnTimer(nIDEvent);
+}
+
 void CFishTxtDlg::OnBnClickedBtnOpenFile()
 {
 	CFileDialog fileDlg(TRUE, _T("txt"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("文本文档(*.txt)|*.txt|测试用(*.cpp)|*.cpp||") , this);
@@ -332,6 +372,9 @@ void CFishTxtDlg::OnBnClickedBtnOpenFile()
 		buf << file.rdbuf();
 		std::string strText(buf.str());
 		file.close();
+		std::thread myThread(thread_get_catalog, (WPARAM)this, (LPARAM) & strText);
+		myThread.detach();
+		//getCatalog(strText);
 		m_ScintillaEdit.SendMessage(SCI_SETTEXT, 1, (LPARAM)strText.c_str());
 	}
 }
@@ -366,16 +409,14 @@ LRESULT CFishTxtDlg::OnEditRButtonDown(WPARAM wParam, LPARAM lParam)
 	CMenu MainMenu, menu;
 	MainMenu.CreateMenu();
 	menu.CreatePopupMenu();
-	if (!m_bMiniMode && !m_bFullScreen)
-	{
-		return 0;
-	}
-	else if (m_bMiniMode)
+	menu.AppendMenu(MF_STRING, WM_CATALOG, "打开目录");
+	
+	if (m_bMiniMode)
 	{
 		menu.AppendMenu(MF_STRING, WM_QUIT_FISH, "退出魔域模式");
 		menu.AppendMenu(MF_STRING, WM_CLOSE_ALL, "关闭软件");
 	}
-	else
+	else if (m_bFullScreen)
 	{
 		menu.AppendMenu(MF_STRING, WM_QUIT_FULL_SCREEN, "退出全屏模式");
 		menu.AppendMenu(MF_STRING, WM_INTO_FISH, "进入魔域模式");
@@ -409,6 +450,10 @@ LRESULT CFishTxtDlg::OnEditRButtonDown(WPARAM wParam, LPARAM lParam)
 	else if (nCmd == WM_INTO_FISH)
 	{
 		OnBnClickedBtnFishing();
+	}
+	else if (nCmd == WM_CATALOG)
+	{
+		m_pDlgCatalog->ShowWindow(SW_SHOW);
 	}
 
 	return 0;
@@ -485,46 +530,122 @@ void CFishTxtDlg::GotoLine(int iTarDocLine, int iCurVisLine)
 
 void CFishTxtDlg::GotoLineDlg()
 {
-	if (pGotoDlg && pGotoDlg->IsWindowVisible())
+	if (m_pDlgGoto && m_pDlgGoto->IsWindowVisible())
 		return;
 	int iLineCount = m_ScintillaEdit.SendMessage(SCI_GETLINECOUNT);
 	int iCurVisLine = m_ScintillaEdit.SendMessage(SCI_GETFIRSTVISIBLELINE) + 1;
 	int iCurDocLine = m_ScintillaEdit.SendMessage(SCI_DOCLINEFROMVISIBLE, iCurVisLine);
-	if (pGotoDlg == nullptr)
+	if (m_pDlgGoto == nullptr)
 	{
-		pGotoDlg = new CGoToLineDlg(this);
-		pGotoDlg->Create(CGoToLineDlg::IDD, this);
+		m_pDlgGoto = new CGoToLineDlg(this);
+		m_pDlgGoto->Create(CGoToLineDlg::IDD, this);
 	}
-	pGotoDlg->SetInfo(iCurDocLine, iLineCount, iCurVisLine);
-	pGotoDlg->Show(TRUE);	
+	m_pDlgGoto->SetInfo(iCurDocLine, iLineCount, iCurVisLine);
+	m_pDlgGoto->Show(TRUE);
 }
 
-void CFishTxtDlg::OnTimer(UINT_PTR nIDEvent)
+void CFishTxtDlg::getCatalog(std::string strText)
 {
-	switch (nIDEvent)
+	std::regex pest("^(第)([零一二三四五六七八九十百千万0-9]{1,7})(章)[^\\n]{1,35}(|\\n)");
+	//替换规则
+	std::regex washpest("(PS|ps)(.)*(|\\n)");
+	//将小说内容中的PS全部替换为“”
+	regex_replace(strText, washpest, "");
+	//list用来储存章节内容
+	std::vector<std::string> vcCatalog;
+	//List<String> list = new ArrayList<>();
+	//List<String> namelist = new ArrayList<String>();
+	//根据匹配规则将小说分为一章一章的，并存到list
+	std::smatch match;
+	std::string::const_iterator citer = strText.cbegin();
+	while (regex_search(citer, strText.cend(), match, pest))
 	{
-	case TIMER_MOUSE_MOVE:
+		citer = match[0].second;
+		vcCatalog.push_back(match[0]);
+	}
+	if (!vcCatalog.empty())
 	{
-		if (m_bMiniMode)
-		{
-			CRect rc;
-			CPoint pt;
-			GetWindowRect(&rc);
-			GetCursorPos(&pt);
-			if (!rc.PtInRect(pt))
-			{
-				ShowWindow(SW_HIDE);
-			}
-			else
-			{
-				ShowWindow(SW_SHOW);
-			}
-		}
+		m_pDlgCatalog->SetCatalog(vcCatalog);
 	}
-		break;
-	default:
-		break;
-	}
+	//for (String s : src.split(pest)) {
+	//	list.add(s);
+	//}
+	//
+	////java正则匹配
+	//Pattern p = Pattern.compile(pest);
+	//Matcher m = p.matcher(src);
+	//int i = 1, j = 1;
+	////存拼接章节内容和章节名后的内容
+	//List<String> newlist = new ArrayList<>();
+	////临时字符串
+	//String newstr = null;
+	////循环匹配
+	//while (m.find()) {
+	//	newstr = "";
+	//	//替换退格符
+	//	String temp = m.group(0).replace(" ", "").replace("\r", "");
+	//	if (i == list.size())
+	//		break;
+	//	//拼接章节名和内容
+	//	newstr = temp + list.get(i);
+	//	i++;
+	//	newlist.add(newstr);
+	//	//添加章节名在list,过滤干扰符号
+	//	temp = temp.replaceAll("[（](.)*[）]", "").replace("：", "");
+	//	temp = temp.replace("\\", "").replace("/", "").replace("|", "");
 
-	CDialogEx::OnTimer(nIDEvent);
+	//	temp = temp.replace("?", "").replace("*", "").replaceAll("[(](.)*[)]", "");
+	//	System.out.println("j=" + j + " temp=" + temp + ".txt");
+	//	j++;
+	//	namelist.add(temp.replace("\n", ".txt"));
+	//	temp = "";
+	//}
+
+	////2.创建目录
+	//File file = new File("E:\\BookFile\\" + bookname);
+	//if (!file.exists()) {
+	//	file.mkdir();
+	//}
+	//String filedir = file.getPath();
+
+	////循环生成章节TXT文件
+	//for (i = 0; i < newlist.size(); i++) {
+	//	//System.out.println("catname="+filedir+File.separator+namelist.get(i));
+	//	//2.在目录下创建TXT文件
+	//	StringBuffer ctl = new StringBuffer(namelist.get(i));
+	//	String bloodbath = filedir + "\\" + ctl.append(".txt");
+	//	//System.out.println(bloodbath);
+
+	//	File book = new File(bloodbath);
+
+	//	FileWriter fr = null;
+	//	try {
+	//		fr = new FileWriter(book);
+	//		fr.write(newlist.get(i));
+	//	}
+	//	catch (Exception e) {
+	//		e.printStackTrace();
+	//	}
+	//	finally {
+	//		try {
+	//			fr.close();
+	//		}
+	//		catch (IOException e) {
+	//			e.printStackTrace();
+	//		}
+	//	}
+}
+
+LRESULT CFishTxtDlg::OnGotoCatalog(WPARAM wParam, LPARAM lParam)
+{
+	std::string strCatalog = *(std::string*)wParam;
+	m_ScintillaEdit.SendMessage(SCI_SETTARGETSTART, 0);
+	int totalLength = m_ScintillaEdit.SendMessage(SCI_GETLENGTH);
+	m_ScintillaEdit.SendMessage(SCI_SETTARGETEND, totalLength);
+	int iPos = m_ScintillaEdit.SendMessage(SCI_SEARCHINTARGET, strCatalog.size(), (LPARAM)strCatalog.c_str());
+	int iDocLine = m_ScintillaEdit.SendMessage(SCI_LINEFROMPOSITION, iPos);
+	int iVisLine = m_ScintillaEdit.SendMessage(SCI_VISIBLEFROMDOCLINE, iDocLine);
+	int iCurVisLine = m_ScintillaEdit.SendMessage(SCI_GETFIRSTVISIBLELINE);
+	m_ScintillaEdit.SendMessage(SCI_LINESCROLL, 0, iVisLine - iCurVisLine);
+	return 0;
 }

@@ -5,7 +5,7 @@
 #include "pch.h"
 #include "framework.h"
 #include "FishTxt.h"
-#include "FishTxtDlg.h"
+#include ".\UI\FishTxtDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
