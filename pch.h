@@ -19,4 +19,5 @@ CString RCG_UNICODE2UTF8(CStringW strUnicode);
 CString RCG_WideByte2Asic(CStringW strUnicode);
 
 
+
 #endif //PCH_H
