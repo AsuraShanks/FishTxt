@@ -1,6 +1,6 @@
 #pragma once
 #include <afxwin.h>
-#include "..\SDK\Scintilla\include\Scintilla.h"
+#include "..\include\Scintilla\Scintilla.h"
 
 #define WM_EDIT_RBUTTONDOWN (WM_USER+1)
 #define WM_EDIT_NCHITTEST   (WM_USER+2)

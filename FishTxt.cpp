@@ -1,7 +1,6 @@
 ﻿
 // FishTxt.cpp: 定义应用程序的类行为。
 //
-
 #include "pch.h"
 #include "framework.h"
 #include "FishTxt.h"
@@ -28,6 +27,7 @@ CFishTxtApp::CFishTxtApp()
 
 	// TODO: 在此处添加构造代码，
 	// 将所有重要的初始化放置在 InitInstance 中
+	m_hUchardet = NULL;
 }
 
 
@@ -69,7 +69,13 @@ BOOL CFishTxtApp::InitInstance()
 	// 例如修改为公司或组织名
 	SetRegistryKey(_T("应用程序向导生成的本地应用程序"));
 
-	Scintilla_RegisterClasses(theApp.m_hInstance);
+	//Scintilla_RegisterClasses(theApp.m_hInstance);
+	m_hScintilla = LoadDll(_T("Scintilla.dll"));
+	m_hUchardet = LoadDll(_T("uchardet.dll"));
+	if (m_hScintilla == NULL || m_hUchardet == NULL)
+	{
+		return FALSE;
+	}
 
 	CFishTxtDlg dlg;
 	m_pMainWnd = &dlg;
@@ -86,8 +92,8 @@ BOOL CFishTxtApp::InitInstance()
 	}
 	else if (nResponse == -1)
 	{
-		TRACE(traceAppMsg, 0, "警告: 对话框创建失败，应用程序将意外终止。\n");
-		TRACE(traceAppMsg, 0, "警告: 如果您在对话框上使用 MFC 控件，则无法 #define _AFX_NO_MFC_CONTROLS_IN_DIALOGS。\n");
+		TRACE(traceAppMsg, 0, _T("警告: 对话框创建失败，应用程序将意外终止。\n"));
+		TRACE(traceAppMsg, 0, _T("警告: 如果您在对话框上使用 MFC 控件，则无法 #define _AFX_NO_MFC_CONTROLS_IN_DIALOGS。\n"));
 	}
 
 	// 删除上面创建的 shell 管理器。
@@ -108,17 +114,43 @@ BOOL CFishTxtApp::InitInstance()
 int CFishTxtApp::ExitInstance()
 {
 	// TODO: 在此添加专用代码和/或调用基类
+	if (m_hScintilla != NULL)
+	{
+		FreeLibrary(m_hScintilla);
+		m_hScintilla = NULL;
+	}
+
+	if (m_hUchardet != NULL)
+	{
+		FreeLibrary(m_hUchardet);
+		m_hUchardet = NULL;
+	}
 
 	return CWinApp::ExitInstance();
 }
 
 std::string CFishTxtApp::_GetCurFilePath()
 {
-	char path[MAX_PATH] = { 0 };
+	TCHAR path[MAX_PATH] = { 0 };
 	GetModuleFileName(NULL, path, MAX_PATH);
 	std::string sPath(path);
-	int pos = sPath.rfind("\\");
+	int pos = sPath.rfind(_T("\\"));
 	std::string sRet = sPath.substr(0, pos);
-	sRet += "\\";
+	sRet += _T("\\");
 	return sRet;
+}
+
+HMODULE CFishTxtApp::LoadDll(std::string strDllName)
+{
+	std::string strDll = _GetCurFilePath();
+	strDll += strDllName;
+	HMODULE hModule = LoadLibraryEx(strDll.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+	if (hModule == NULL)
+	{
+		CString msg;
+		msg.Format(_T("load %s fail! error code:%d"), strDllName.c_str(), GetLastError());
+		AfxMessageBox(msg);
+		return NULL;
+	}
+	return hModule;
 }

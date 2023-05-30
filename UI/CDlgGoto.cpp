@@ -50,7 +50,7 @@ BOOL CGoToLineDlg::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
-	m_editTarget.SetWindowText("");
+	m_editTarget.SetWindowText(_T(""));
 	GotoCenter();
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -74,8 +74,8 @@ void CGoToLineDlg::OnBnClickedOk()
 	// TODO: 在此添加控件通知处理程序代码
 	CString strLine;
 	m_editTarget.GetWindowText(strLine);
-	m_iTargetLine = atoi(strLine);
-	m_editTarget.SetWindowText("");
+	m_iTargetLine = _ttoi(strLine);
+	m_editTarget.SetWindowText(_T(""));
 
 	CFishTxtDlg* pParent = (CFishTxtDlg*)GetParent();
 

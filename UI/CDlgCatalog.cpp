@@ -42,7 +42,7 @@ BOOL CDlgCatalog::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
-	m_listCatalog.InsertColumn(0, "目录", 0, 250);
+	m_listCatalog.InsertColumn(0, _T("目录"), 0, 250);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
@@ -71,14 +71,14 @@ void CDlgCatalog::OnNMDblclkListCatalog(NMHDR* pNMHDR, LRESULT* pResult)
 	*pResult = 0;
 }
 
-void CDlgCatalog::SetCatalog(std::vector<std::string> vcCatalog)
+void CDlgCatalog::SetCatalog(std::vector<CString> vcCatalog)
 {
 	m_listCatalog.DeleteAllItems();
 
 	int nCount = vcCatalog.size();
 	for (int i = 0; i < nCount; ++i)
 	{
-		std::string strCatalog = vcCatalog[i];
-		m_listCatalog.InsertItem(i, strCatalog.c_str());
+		CString strCatalog = vcCatalog[i];
+		m_listCatalog.InsertItem(i, strCatalog);
 	}
 }

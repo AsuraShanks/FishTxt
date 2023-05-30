@@ -1,6 +1,5 @@
 ﻿// FishTxtDlg.cpp: 实现文件
 //
-
 #include "pch.h"
 #include "..\framework.h"
 #include "..\FishTxt.h"
@@ -11,11 +10,14 @@
 #include <thread>
 #include <regex>
 #include <list>
-
+#include "..\include\uchardet\uchardet.h"
+#include "..\src\EncodingMapper.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+
+#define len 1024
 
 static const int iButtonBarWidth = 180;
 static const int iDlgWidth = 650;
@@ -99,8 +101,9 @@ BOOL ShowInTaskbar(HWND hWnd, BOOL bShow)
 void thread_get_catalog(WPARAM wParam, LPARAM lParam)
 {
 	CFishTxtDlg* pDlg = (CFishTxtDlg*)wParam;
-	std::string* pText = reinterpret_cast<std::string*>(lParam);
-	pDlg->getCatalog(*pText);
+	LPCSTR pText = LPCSTR(lParam);
+	std::string strText(pText);
+	pDlg->getCatalog(strText);
 }
 
 // CFishTxtDlg 对话框
@@ -156,8 +159,7 @@ BOOL CFishTxtDlg::OnInitDialog()
 	m_ScintillaEdit.SendMessage(SCI_SETHSCROLLBAR, 0, 0);			//隐藏水平滚动条
 	m_ScintillaEdit.SendMessage(SCI_SETVSCROLLBAR, 0, 0);			//隐藏垂直滚动条
 	m_ScintillaEdit.SendMessage(SCI_USEPOPUP, 0);					//隐藏自带弹出菜单
-	//m_ScintillaEdit.SendMessage(SCI_SETCODEPAGE, SC_CP_UTF8);		//设置编辑框识别编码为utf8
-	m_ScintillaEdit.SendMessage(SCI_SETCODEPAGE, 936);				//设置编辑框识别编码为GBK简体中文
+	m_ScintillaEdit.SendMessage(SCI_SETCODEPAGE, 936);				//设置编辑框识别编码为GBK
 	m_ScintillaEdit.SendMessage(SCI_SETWRAPMODE, 2);				//启用换行
 
 	gDialog = this->GetSafeHwnd();
@@ -247,7 +249,7 @@ int CFishTxtDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// TODO:  在此添加您专用的创建代码WS_EX_CLIENTEDGE
 	if (!m_ScintillaEdit.Create(NULL, WS_CHILD | WS_VISIBLE, CRect(0, 0, lpCreateStruct->cx, lpCreateStruct->cy), this, 10000))
 	{
-		OutputDebugString("创建SciLexer编辑框失败");
+		OutputDebugString(_T("创建SciLexer编辑框失败"));
 	}
 
 	return 0;
@@ -352,30 +354,39 @@ void CFishTxtDlg::OnTimer(UINT_PTR nIDEvent)
 
 void CFishTxtDlg::OnBnClickedBtnOpenFile()
 {
-	CFileDialog fileDlg(TRUE, _T("txt"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("文本文档(*.txt)|*.txt|测试用(*.cpp)|*.cpp||") , this);
+	CFileDialog fileDlg(TRUE, _T("txt"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("文本文档(*.txt)|*.txt||") , this);
 
 	if (fileDlg.DoModal() == IDOK)
 	{
 		CString strPath = fileDlg.GetPathName();
 		
+		int iEncoding = textEncoding(strPath);
+		if (-1 == iEncoding)
+			return;
+
 		std::ifstream file;
 		file.open(strPath.GetBuffer(), std::ios::in | std::ios::binary);
 		strPath.ReleaseBuffer();
 		if (!file.is_open())
 		{
 			CString msg;
-			msg.Format("%s打开失败！", strPath);
+			msg.Format(_T("%s打开失败！"), strPath);
 			AfxMessageBox(msg);
 			return;
 		}
 		std::stringstream buf;
 		buf << file.rdbuf();
-		std::string strText(buf.str());
+		CString strText(buf.str().c_str());
+		if (iEncoding == SC_CP_UTF8)
+		{
+			strText = RCG_UTF82ASCII(strText);
+		}
 		file.close();
-		std::thread myThread(thread_get_catalog, (WPARAM)this, (LPARAM) & strText);
+		std::thread myThread(thread_get_catalog, (WPARAM)this, (LPARAM)strText.GetBuffer());
+		strText.ReleaseBuffer();
 		myThread.detach();
-		//getCatalog(strText);
-		m_ScintillaEdit.SendMessage(SCI_SETTEXT, 1, (LPARAM)strText.c_str());
+		m_ScintillaEdit.SendMessage(SCI_SETTEXT, 1, (LPARAM)strText.GetBuffer());
+		strText.ReleaseBuffer();
 	}
 }
 
@@ -409,17 +420,17 @@ LRESULT CFishTxtDlg::OnEditRButtonDown(WPARAM wParam, LPARAM lParam)
 	CMenu MainMenu, menu;
 	MainMenu.CreateMenu();
 	menu.CreatePopupMenu();
-	menu.AppendMenu(MF_STRING, WM_CATALOG, "打开目录");
+	menu.AppendMenu(MF_STRING, WM_CATALOG, _T("打开目录"));
 	
 	if (m_bMiniMode)
 	{
-		menu.AppendMenu(MF_STRING, WM_QUIT_FISH, "退出魔域模式");
-		menu.AppendMenu(MF_STRING, WM_CLOSE_ALL, "关闭软件");
+		menu.AppendMenu(MF_STRING, WM_QUIT_FISH, _T("退出魔域模式"));
+		menu.AppendMenu(MF_STRING, WM_CLOSE_ALL, _T("关闭软件"));
 	}
 	else if (m_bFullScreen)
 	{
-		menu.AppendMenu(MF_STRING, WM_QUIT_FULL_SCREEN, "退出全屏模式");
-		menu.AppendMenu(MF_STRING, WM_INTO_FISH, "进入魔域模式");
+		menu.AppendMenu(MF_STRING, WM_QUIT_FULL_SCREEN, _T("退出全屏模式"));
+		menu.AppendMenu(MF_STRING, WM_INTO_FISH, _T("进入魔域模式"));
 	}
 	
 	UINT nCmd = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RETURNCMD, point.x, point.y, this);
@@ -456,6 +467,20 @@ LRESULT CFishTxtDlg::OnEditRButtonDown(WPARAM wParam, LPARAM lParam)
 		m_pDlgCatalog->ShowWindow(SW_SHOW);
 	}
 
+	return 0;
+}
+
+LRESULT CFishTxtDlg::OnGotoCatalog(WPARAM wParam, LPARAM lParam)
+{
+	std::string strCatalog = *(std::string*)wParam;
+	m_ScintillaEdit.SendMessage(SCI_SETTARGETSTART, 0);
+	int totalLength = m_ScintillaEdit.SendMessage(SCI_GETLENGTH);
+	m_ScintillaEdit.SendMessage(SCI_SETTARGETEND, totalLength);
+	int iPos = m_ScintillaEdit.SendMessage(SCI_SEARCHINTARGET, strCatalog.size(), (LPARAM)strCatalog.c_str());
+	int iDocLine = m_ScintillaEdit.SendMessage(SCI_LINEFROMPOSITION, iPos);
+	int iVisLine = m_ScintillaEdit.SendMessage(SCI_VISIBLEFROMDOCLINE, iDocLine);
+	int iCurVisLine = m_ScintillaEdit.SendMessage(SCI_GETFIRSTVISIBLELINE);
+	m_ScintillaEdit.SendMessage(SCI_LINESCROLL, 0, iVisLine - iCurVisLine);
 	return 0;
 }
 
@@ -552,100 +577,51 @@ void CFishTxtDlg::getCatalog(std::string strText)
 	//将小说内容中的PS全部替换为“”
 	regex_replace(strText, washpest, "");
 	//list用来储存章节内容
-	std::vector<std::string> vcCatalog;
-	//List<String> list = new ArrayList<>();
-	//List<String> namelist = new ArrayList<String>();
-	//根据匹配规则将小说分为一章一章的，并存到list
+	std::vector<CString> vcCatalog;
+	//章节名存入vector
 	std::smatch match;
 	std::string::const_iterator citer = strText.cbegin();
 	while (regex_search(citer, strText.cend(), match, pest))
 	{
 		citer = match[0].second;
-		vcCatalog.push_back(match[0]);
+		std::string str = match[0];
+		vcCatalog.push_back(CString(str.c_str()));
 	}
 	if (!vcCatalog.empty())
 	{
 		m_pDlgCatalog->SetCatalog(vcCatalog);
 	}
-	//for (String s : src.split(pest)) {
-	//	list.add(s);
-	//}
-	//
-	////java正则匹配
-	//Pattern p = Pattern.compile(pest);
-	//Matcher m = p.matcher(src);
-	//int i = 1, j = 1;
-	////存拼接章节内容和章节名后的内容
-	//List<String> newlist = new ArrayList<>();
-	////临时字符串
-	//String newstr = null;
-	////循环匹配
-	//while (m.find()) {
-	//	newstr = "";
-	//	//替换退格符
-	//	String temp = m.group(0).replace(" ", "").replace("\r", "");
-	//	if (i == list.size())
-	//		break;
-	//	//拼接章节名和内容
-	//	newstr = temp + list.get(i);
-	//	i++;
-	//	newlist.add(newstr);
-	//	//添加章节名在list,过滤干扰符号
-	//	temp = temp.replaceAll("[（](.)*[）]", "").replace("：", "");
-	//	temp = temp.replace("\\", "").replace("/", "").replace("|", "");
-
-	//	temp = temp.replace("?", "").replace("*", "").replaceAll("[(](.)*[)]", "");
-	//	System.out.println("j=" + j + " temp=" + temp + ".txt");
-	//	j++;
-	//	namelist.add(temp.replace("\n", ".txt"));
-	//	temp = "";
-	//}
-
-	////2.创建目录
-	//File file = new File("E:\\BookFile\\" + bookname);
-	//if (!file.exists()) {
-	//	file.mkdir();
-	//}
-	//String filedir = file.getPath();
-
-	////循环生成章节TXT文件
-	//for (i = 0; i < newlist.size(); i++) {
-	//	//System.out.println("catname="+filedir+File.separator+namelist.get(i));
-	//	//2.在目录下创建TXT文件
-	//	StringBuffer ctl = new StringBuffer(namelist.get(i));
-	//	String bloodbath = filedir + "\\" + ctl.append(".txt");
-	//	//System.out.println(bloodbath);
-
-	//	File book = new File(bloodbath);
-
-	//	FileWriter fr = null;
-	//	try {
-	//		fr = new FileWriter(book);
-	//		fr.write(newlist.get(i));
-	//	}
-	//	catch (Exception e) {
-	//		e.printStackTrace();
-	//	}
-	//	finally {
-	//		try {
-	//			fr.close();
-	//		}
-	//		catch (IOException e) {
-	//			e.printStackTrace();
-	//		}
-	//	}
 }
 
-LRESULT CFishTxtDlg::OnGotoCatalog(WPARAM wParam, LPARAM lParam)
+int CFishTxtDlg::textEncoding(CString strFile)
 {
-	std::string strCatalog = *(std::string*)wParam;
-	m_ScintillaEdit.SendMessage(SCI_SETTARGETSTART, 0);
-	int totalLength = m_ScintillaEdit.SendMessage(SCI_GETLENGTH);
-	m_ScintillaEdit.SendMessage(SCI_SETTARGETEND, totalLength);
-	int iPos = m_ScintillaEdit.SendMessage(SCI_SEARCHINTARGET, strCatalog.size(), (LPARAM)strCatalog.c_str());
-	int iDocLine = m_ScintillaEdit.SendMessage(SCI_LINEFROMPOSITION, iPos);
-	int iVisLine = m_ScintillaEdit.SendMessage(SCI_VISIBLEFROMDOCLINE, iDocLine);
-	int iCurVisLine = m_ScintillaEdit.SendMessage(SCI_GETFIRSTVISIBLELINE);
-	m_ScintillaEdit.SendMessage(SCI_LINESCROLL, 0, iVisLine - iCurVisLine);
-	return 0;
+	int iEncoding = -1;
+	char *buf = new char[len];
+	CString msg;
+	std::ifstream file;
+	file.open(strFile.GetBuffer(), std::ios::in | std::ios::binary);
+	strFile.ReleaseBuffer();
+	if (!file.is_open())
+	{
+		msg.Format(_T("%s打开失败！"), strFile);
+		AfxMessageBox(msg);
+		return iEncoding;
+	}
+	file.read(buf, len);
+	uchardet_t ud;
+	ud = uchardet_new();
+	if (uchardet_handle_data(ud, buf, len) != 0)/* 如果样本字符不够，那么有可能导致分析失败 */
+	{
+		msg.Format(_T("分析编码失败！"));
+		AfxMessageBox(msg);
+		return iEncoding;
+	}
+	uchardet_data_end(ud);
+
+	const char* strEncoding = uchardet_get_charset(ud);
+	iEncoding = EncodingMapper::getInstance().getEncodingFromString(strEncoding);
+	uchardet_delete(ud);
+	file.close();
+	delete []buf;
+	return iEncoding;
 }

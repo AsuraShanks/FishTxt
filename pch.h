@@ -9,7 +9,14 @@
 
 // 添加要在此处预编译的标头
 #include "framework.h"
+#include <exception>
 
+CString RCG_UTF82ASCII(CString strUtf8);
+CStringW RCG_UTF82UNICODE(CString strUtf8);
+CString RCG_ASCII2UTF8(CString strAscii);
+CStringW RCG_ASCII2WideByte(CString strAscii);
+CString RCG_UNICODE2UTF8(CStringW strUnicode);
+CString RCG_WideByte2Asic(CStringW strUnicode);
 
 
 #endif //PCH_H

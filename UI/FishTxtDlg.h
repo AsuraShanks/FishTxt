@@ -87,6 +87,7 @@ public:
 	void GotoLine(int iTarDocLine, int iCurVisLine);
 	void GotoLineDlg();
 	void getCatalog(std::string strText);
+	int textEncoding(CString strFile);		//-2:error
 
 public:
 	afx_msg void OnBnClickedBtnOpenFile();

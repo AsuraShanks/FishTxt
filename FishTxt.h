@@ -30,7 +30,12 @@ public:
 	DECLARE_MESSAGE_MAP()
 
 public:
+	HMODULE m_hScintilla;
+	HMODULE m_hUchardet;
+
+public:
 	std::string _GetCurFilePath();
+	HMODULE LoadDll(std::string strDllName);
 };
 
 extern CFishTxtApp theApp;

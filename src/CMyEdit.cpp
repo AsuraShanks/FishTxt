@@ -23,7 +23,7 @@ BOOL CMyEdit::Create(DWORD dwExStyle, DWORD dwStyle, const RECT& rect, CWnd* pPa
 {
 	// TODO: 在此添加专用代码和/或调用基类
 
-	return CWnd::CreateEx(dwExStyle, "Scintilla", "", dwStyle, rect, pParentWnd, nID);
+	return CWnd::CreateEx(dwExStyle, _T("Scintilla"), _T(""), dwStyle, rect, pParentWnd, nID);
 }
 //实现拖拽
 void CMyEdit::OnLButtonDown(UINT nFlags, CPoint point)

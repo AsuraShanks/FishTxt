@@ -13,17 +13,29 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="SDK">
-      <UniqueIdentifier>{14849c68-feee-4de9-9178-0bba86030b99}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="SDK\Scintilla">
-      <UniqueIdentifier>{c18815ec-1cb7-4992-a29b-f2d9217f2d6e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="UI">
       <UniqueIdentifier>{7711d9ba-0e22-4325-b70f-faaaf462b43d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MyEdit">
-      <UniqueIdentifier>{1896ab6f-77cd-4046-a57b-e81a4e8003c2}</UniqueIdentifier>
+    <Filter Include="include">
+      <UniqueIdentifier>{5426c249-9bb3-4330-a143-a2b559d43a37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Scintilla">
+      <UniqueIdentifier>{9eb2263f-80cf-47d5-b684-c658144d6ff1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\uchardet">
+      <UniqueIdentifier>{2a4e5b67-650e-4371-84dc-38a20ff229e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\uchardet\LangModels">
+      <UniqueIdentifier>{0c646e13-3b6a-4c2b-9ce8-305256f5ee36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{4e38dd11-bd80-4a95-92b4-3507274ecac0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\MyEdit">
+      <UniqueIdentifier>{d1334618-7027-4e6c-98c2-a24a5b5c4dbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Encoding">
+      <UniqueIdentifier>{3faaa2a4-d2b2-476e-a923-73a93d0de7d2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -42,44 +54,89 @@
     <ClInclude Include="pch.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SDK\Scintilla\include\ILexer.h">
-      <Filter>SDK\Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="SDK\Scintilla\include\ILoader.h">
-      <Filter>SDK\Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="SDK\Scintilla\include\Sci_Position.h">
-      <Filter>SDK\Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="SDK\Scintilla\include\Scintilla.h">
-      <Filter>SDK\Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="SDK\Scintilla\include\ScintillaCall.h">
-      <Filter>SDK\Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="SDK\Scintilla\include\ScintillaMessages.h">
-      <Filter>SDK\Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="SDK\Scintilla\include\ScintillaStructures.h">
-      <Filter>SDK\Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="SDK\Scintilla\include\ScintillaTypes.h">
-      <Filter>SDK\Scintilla</Filter>
-    </ClInclude>
-    <ClInclude Include="SDK\Scintilla\include\ScintillaWidget.h">
-      <Filter>SDK\Scintilla</Filter>
-    </ClInclude>
     <ClInclude Include="UI\FishTxtDlg.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="UI\CDlgGoto.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="src\CMyEdit.h">
-      <Filter>MyEdit</Filter>
-    </ClInclude>
     <ClInclude Include="UI\CDlgCatalog.h">
       <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Scintilla\Scintilla.h">
+      <Filter>include\Scintilla</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\CharDistribution.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\JpCntx.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsBig5Prober.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsCharSetProber.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsCodingStateMachine.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nscore.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsEscCharsetProber.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsEUCJPProber.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsEUCKRProber.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsEUCTWProber.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsGB2312Prober.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsHebrewProber.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsLatin1Prober.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsMBCSGroupProber.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsPkgInt.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsSBCharSetProber.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsSBCSGroupProber.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsSJISProber.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsUniversalDetector.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\nsUTF8Prober.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\prmem.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uchardet\uchardet.h">
+      <Filter>include\uchardet</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CMyEdit.h">
+      <Filter>src\MyEdit</Filter>
+    </ClInclude>
+    <ClInclude Include="src\EncodingMapper.h">
+      <Filter>src\Encoding</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -95,11 +152,116 @@
     <ClCompile Include="UI\CDlgGoto.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="src\CMyEdit.cpp">
-      <Filter>MyEdit</Filter>
-    </ClCompile>
     <ClCompile Include="UI\CDlgCatalog.cpp">
       <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\CharDistribution.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\JpCntx.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsBig5Prober.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsCharSetProber.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsEscCharsetProber.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsEscSM.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsEUCJPProber.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsEUCKRProber.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsEUCTWProber.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsGB2312Prober.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsHebrewProber.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsLatin1Prober.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsMBCSGroupProber.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsMBCSSM.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsSBCharSetProber.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsSBCSGroupProber.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsSJISProber.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsUniversalDetector.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\nsUTF8Prober.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\uchardet.cpp">
+      <Filter>include\uchardet</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangArabicModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangBulgarianModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangDanishModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangEsperantoModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangFrenchModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangGermanModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangGreekModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangHebrewModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangHungarianModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangRussianModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangSpanishModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangThaiModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangTurkishModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="include\uchardet\LangModels\LangVietnameseModel.cpp">
+      <Filter>include\uchardet\LangModels</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CMyEdit.cpp">
+      <Filter>src\MyEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EncodingMapper.cpp">
+      <Filter>src\Encoding</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

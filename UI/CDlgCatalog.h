@@ -24,7 +24,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 public:
-	void SetCatalog(std::vector<std::string> vcCatalog);
+	void SetCatalog(std::vector<CString> vcCatalog);
 
 public:
 	CListCtrl m_listCatalog;
